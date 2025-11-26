@@ -5,7 +5,6 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
     // throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
-    // We will use in-memory server if no URI
 }
 
 interface MongooseCache {
@@ -36,9 +35,11 @@ async function dbConnect() {
 
         cached.promise = (async () => {
             let uri = MONGODB_URI;
+            const isProduction = process.env.NODE_ENV === 'production';
 
             // Fallback to in-memory server if URI is invalid or localhost (assuming user has no mongo)
-            if (!uri || uri.includes('localhost') || uri.includes('127.0.0.1') || uri.includes('mongodb.net')) {
+            // ONLY if we are NOT in production (or if URI explicitly says localhost)
+            if (!uri || ((uri.includes('localhost') || uri.includes('127.0.0.1')) && !isProduction)) {
                 if (!cached.mongod) {
                     console.log('Starting MongoDB Memory Server...');
                     cached.mongod = await MongoMemoryServer.create();
