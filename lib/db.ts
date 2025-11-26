@@ -8,11 +8,6 @@ if (!MONGODB_URI) {
     // We will use in-memory server if no URI
 }
 
-/**
- * Global is used here to maintain a cached connection across hot reloads
- * in development. This prevents connections growing exponentially
- * during API Route usage.
- */
 interface MongooseCache {
     conn: typeof mongoose | null;
     promise: Promise<typeof mongoose> | null;
@@ -43,7 +38,6 @@ async function dbConnect() {
             let uri = MONGODB_URI;
 
             // Fallback to in-memory server if URI is invalid or localhost (assuming user has no mongo)
-            // Or just always use it for this demo to be safe
             if (!uri || uri.includes('localhost') || uri.includes('127.0.0.1') || uri.includes('mongodb.net')) {
                 if (!cached.mongod) {
                     console.log('Starting MongoDB Memory Server...');
@@ -58,7 +52,7 @@ async function dbConnect() {
             return mongoose.connect(uri!, opts).then((mongoose) => {
                 return mongoose;
             });
-        })();
+        })() as Promise<typeof mongoose>;
     }
 
     try {
