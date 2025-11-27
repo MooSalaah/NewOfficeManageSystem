@@ -6,7 +6,9 @@ import { cookies } from 'next/headers';
 
 export async function GET(req: Request) {
     try {
+        console.log('Fetching profile...');
         await dbConnect();
+        console.log('DB connected in profile route');
 
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;

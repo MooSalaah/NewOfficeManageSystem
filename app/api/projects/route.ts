@@ -6,7 +6,9 @@ import User from '@/models/User';
 
 export async function GET() {
     try {
+        console.log('Fetching projects...');
         await dbConnect();
+        console.log('DB connected in projects route');
 
         // Ensure models are registered
         const _u = User;
