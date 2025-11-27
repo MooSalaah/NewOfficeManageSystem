@@ -23,7 +23,8 @@ export default function SettingsPage() {
         name: '',
         email: '',
         password: '',
-        currentPassword: ''
+        currentPassword: '',
+        avatar: ''
     });
 
     // New User State
@@ -79,7 +80,9 @@ export default function SettingsPage() {
 
             if (res.ok) {
                 alert('تم تحديث الملف الشخصي بنجاح');
-                setProfile({ name: '', email: '', password: '', currentPassword: '' });
+                setProfile({ name: '', email: '', password: '', currentPassword: '', avatar: '' });
+                // Reload to show new avatar
+                window.location.reload();
             } else {
                 alert('فشل التحديث');
             }
@@ -166,6 +169,24 @@ export default function SettingsPage() {
                                     onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                                     placeholder="اتركه فارغاً للإبقاء على الحالي"
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="avatar">رابط الصورة الرمزية (Avatar URL)</Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        id="avatar"
+                                        value={profile.avatar}
+                                        onChange={(e) => setProfile({ ...profile, avatar: e.target.value })}
+                                        placeholder="https://..."
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setProfile({ ...profile, avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random()}` })}
+                                    >
+                                        توليد عشوائي
+                                    </Button>
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="password">كلمة المرور الجديدة</Label>

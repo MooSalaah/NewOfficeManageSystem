@@ -56,7 +56,7 @@ export function Sidebar() {
                             window.location.href = '/login';
                         }
                     }}
-                    className="flex items-center gap-3 px-4 py-3 w-full text-destructive hover:bg-destructive/10 rounded-md transition-colors font-medium"
+                    className="flex items-center gap-3 px-4 py-3 w-full text-destructive hover:bg-destructive/10 rounded-md transition-colors font-medium cursor-pointer"
                 >
                     <LogOut className="w-5 h-5" />
                     <span>تسجيل الخروج</span>
