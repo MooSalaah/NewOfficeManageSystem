@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Briefcase, Users, DollarSign, UserCheck, Settings, LogOut, X } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Users, DollarSign, UserCheck, Settings, LogOut, X, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const menuItems = [
     { href: '/dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
     { href: '/dashboard/projects', label: 'المشاريع', icon: Briefcase },
+    { href: '/dashboard/tasks', label: 'المهام', icon: ClipboardList },
     { href: '/dashboard/clients', label: 'العملاء', icon: Users },
     { href: '/dashboard/finance', label: 'المالية', icon: DollarSign },
     { href: '/dashboard/hr', label: 'الموارد البشرية', icon: UserCheck },
