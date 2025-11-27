@@ -7,11 +7,27 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, Calendar, ClipboardList } from 'lucide-react';
 
-import useSWR from 'swr';
-import { fetcher } from '@/lib/fetcher';
-
 export default function TasksPage() {
-    const { data: tasks = [], error, isLoading: loading } = useSWR<any[]>('/api/tasks', fetcher);
+    const [tasks, setTasks] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                const res = await fetch('/api/tasks');
+                if (res.ok) {
+                    const data = await res.json();
+                    setTasks(data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch tasks', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTasks();
+    }, []);
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {

@@ -1,16 +1,18 @@
 import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-    // throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
+    // In production, we throw an error if URI is missing.
+    // In dev, we can warn or throw.
+    if (process.env.NODE_ENV === 'production') {
+        throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
+    }
 }
 
 interface MongooseCache {
     conn: typeof mongoose | null;
     promise: Promise<typeof mongoose> | null;
-    mongod: MongoMemoryServer | null;
 }
 
 declare global {
@@ -20,7 +22,7 @@ declare global {
 let cached: MongooseCache = (global as any).mongoose;
 
 if (!cached) {
-    cached = (global as any).mongoose = { conn: null, promise: null, mongod: null };
+    cached = (global as any).mongoose = { conn: null, promise: null };
 }
 
 async function dbConnect() {
@@ -33,33 +35,9 @@ async function dbConnect() {
             bufferCommands: false,
         };
 
-        cached.promise = (async () => {
-            let uri = MONGODB_URI;
-            // Check if we are in production OR on Vercel (which implies production-like environment)
-            const isVercel = !!process.env.VERCEL;
-            const isProduction = process.env.NODE_ENV === 'production' || isVercel;
-
-            if (!uri && isProduction) {
-                throw new Error('MONGODB_URI is not defined in Environment Variables. Please add it in Vercel Settings and Redeploy.');
-            }
-
-            // Fallback to in-memory server if URI is invalid or localhost (assuming user has no mongo)
-            // ONLY if we are NOT in production (or if URI explicitly says localhost)
-            if (!uri || ((uri.includes('localhost') || uri.includes('127.0.0.1')) && !isProduction)) {
-                if (!cached.mongod) {
-                    console.log('Starting MongoDB Memory Server...');
-                    cached.mongod = await MongoMemoryServer.create();
-                    uri = cached.mongod.getUri();
-                    console.log('MongoDB Memory Server started at:', uri);
-                } else {
-                    uri = cached.mongod.getUri();
-                }
-            }
-
-            return mongoose.connect(uri!, opts).then((mongoose) => {
-                return mongoose;
-            });
-        })() as Promise<typeof mongoose>;
+        cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
+            return mongoose;
+        });
     }
 
     try {

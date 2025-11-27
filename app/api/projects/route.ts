@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Project from '@/models/Project';
-import Client from '@/models/Client'; // Ensure Client model is registered
+import Client from '@/models/Client';
+import User from '@/models/User';
 
 export async function GET() {
     try {
         await dbConnect();
+
+        // Ensure models are registered
+        const _u = User;
+        const _c = Client;
+
         // Populate client name and team members (just names for list view)
         const projects = await Project.find({})
             .populate('client', 'name')
