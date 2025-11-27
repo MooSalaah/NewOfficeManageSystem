@@ -161,14 +161,17 @@ export default function SettingsPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">البريد الإلكتروني</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    value={profile.email}
-                                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                                    placeholder="اتركه فارغاً للإبقاء على الحالي"
-                                />
+                                <Label htmlFor="email">اسم المستخدم (البريد الإلكتروني)</Label>
+                                <div className="flex items-center gap-2" dir="ltr">
+                                    <span className="text-muted-foreground bg-muted px-3 py-2 rounded-md border border-input">@newcorner.com</span>
+                                    <Input
+                                        id="email"
+                                        className="text-right"
+                                        value={profile.email.split('@')[0]}
+                                        onChange={(e) => setProfile({ ...profile, email: `${e.target.value}@newcorner.com` })}
+                                        placeholder="username"
+                                    />
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="avatar">رابط الصورة الرمزية (Avatar URL)</Label>

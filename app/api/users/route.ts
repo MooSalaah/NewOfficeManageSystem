@@ -42,6 +42,7 @@ export async function POST(req: Request) {
             email,
             password: hashedPassword,
             role: role || 'employee',
+            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
             permissions: [] // Default permissions
         });
 
