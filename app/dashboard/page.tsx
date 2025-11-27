@@ -16,47 +16,55 @@ export default function DashboardPage() {
             <h2 className="text-3xl font-bold tracking-tight text-primary">لوحة التحكم</h2>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
+                <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">إجمالي المشاريع</CardTitle>
-                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">إجمالي المشاريع</CardTitle>
+                        <div className="p-2 bg-blue-100 dark:bg-blue-800 rounded-full">
+                            <Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-200" />
+                        </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{data?.projectsCount || 0}</div>
-                        <p className="text-xs text-muted-foreground">نشط حالياً</p>
+                        <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">{data?.projectsCount || 0}</div>
+                        <p className="text-xs text-blue-600 dark:text-blue-400">نشط حالياً</p>
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-800">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">العملاء</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">العملاء</CardTitle>
+                        <div className="p-2 bg-purple-100 dark:bg-purple-800 rounded-full">
+                            <Users className="h-4 w-4 text-purple-600 dark:text-purple-200" />
+                        </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{data?.clientsCount || 0}</div>
-                        <p className="text-xs text-muted-foreground">مسجل في النظام</p>
+                        <div className="text-2xl font-bold text-purple-900 dark:text-purple-100">{data?.clientsCount || 0}</div>
+                        <p className="text-xs text-purple-600 dark:text-purple-400">مسجل في النظام</p>
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">الإيرادات</CardTitle>
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium text-emerald-700 dark:text-emerald-300">الإيرادات</CardTitle>
+                        <div className="p-2 bg-emerald-100 dark:bg-emerald-800 rounded-full">
+                            <DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-200" />
+                        </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{data?.revenue?.toLocaleString() || 0} ر.س</div>
-                        <p className="text-xs text-muted-foreground">إجمالي الدخل</p>
+                        <div className="text-2xl font-bold text-emerald-900 dark:text-emerald-100">{data?.revenue?.toLocaleString() || 0} ر.س</div>
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400">إجمالي الدخل</p>
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">المهام المعلقة</CardTitle>
-                        <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-300">المهام المعلقة</CardTitle>
+                        <div className="p-2 bg-amber-100 dark:bg-amber-800 rounded-full">
+                            <CheckCircle className="h-4 w-4 text-amber-600 dark:text-amber-200" />
+                        </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{data?.pendingTasks || 0}</div>
-                        <p className="text-xs text-muted-foreground">تحتاج إلى متابعة</p>
+                        <div className="text-2xl font-bold text-amber-900 dark:text-amber-100">{data?.pendingTasks || 0}</div>
+                        <p className="text-xs text-amber-600 dark:text-amber-400">تحتاج إلى متابعة</p>
                     </CardContent>
                 </Card>
             </div>
