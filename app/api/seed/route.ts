@@ -11,19 +11,32 @@ export async function GET() {
     try {
         await dbConnect();
 
-        // 1. Create Admin User
-        const email = 'admin@example.com';
-        let admin = await User.findOne({ email });
+        // 1. Create Users (Staff)
+        const users = [
+            { name: 'Manager', email: 'manager@newcorner.com', role: 'manager', password: 'password123' },
+            { name: 'Mohamed (Eng)', email: 'mohamed.eng@newcorner.com', role: 'engineer', password: 'password123' },
+            { name: 'Amr (Eng)', email: 'amr.eng@newcorner.com', role: 'engineer', password: 'password123' },
+            { name: 'Mohsen (Eng)', email: 'mohsen.eng@newcorner.com', role: 'engineer', password: 'password123' },
+            { name: 'Ahmed (Acc)', email: 'ahmed.acc@newcorner.com', role: 'accountant', password: 'password123' },
+            { name: 'Sayed (HR)', email: 'sayed.hr@newcorner.com', role: 'hr', password: 'password123' },
+            { name: 'Mohamed (Draft)', email: 'mohamed.draft@newcorner.com', role: 'drafter', password: 'password123' },
+        ];
 
-        if (!admin) {
-            const hashedPassword = await hashPassword('password123');
-            admin = await User.create({
-                name: 'Admin User',
-                email,
-                password: hashedPassword,
-                role: 'admin',
-                permissions: ['all'],
-            });
+        let admin; // Keep reference to manager as admin for other relations
+
+        for (const u of users) {
+            let user = await User.findOne({ email: u.email });
+            if (!user) {
+                const hashedPassword = await hashPassword(u.password);
+                user = await User.create({
+                    name: u.name,
+                    email: u.email,
+                    password: hashedPassword,
+                    role: u.role,
+                    permissions: ['all'], // Simplified permissions for now
+                });
+            }
+            if (u.role === 'manager') admin = user;
         }
 
         // 2. Create Clients

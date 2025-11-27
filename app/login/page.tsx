@@ -102,9 +102,6 @@ export default function LoginPage() {
                                 'دخول'
                             )}
                         </Button>
-                        <Button type="button" variant="outline" className="w-full mt-2" onClick={() => router.push('/dashboard')}>
-                            تخطي تسجيل الدخول (للتجربة)
-                        </Button>
                     </form>
                 </CardContent>
                 <CardFooter className="flex justify-center text-sm text-muted-foreground">
