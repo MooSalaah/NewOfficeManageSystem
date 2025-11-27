@@ -18,7 +18,7 @@ const UserSchema: Schema = new Schema(
         password: { type: String, select: false }, // Don't return password by default
         role: {
             type: String,
-            enum: ['admin', 'engineer', 'accountant', 'hr', 'employee'],
+            enum: ['admin', 'manager', 'engineer', 'accountant', 'hr', 'employee', 'drafter'],
             default: 'employee',
         },
         avatar: { type: String },

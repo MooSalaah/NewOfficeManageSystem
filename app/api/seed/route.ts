@@ -25,17 +25,21 @@ export async function GET() {
         let admin; // Keep reference to manager as admin for other relations
 
         for (const u of users) {
-            let user = await User.findOne({ email: u.email });
-            if (!user) {
-                const hashedPassword = await hashPassword(u.password);
-                user = await User.create({
+            const hashedPassword = await hashPassword(u.password);
+
+            // Upsert user: Update if exists, Create if not. Ensure password and role are set.
+            const user = await User.findOneAndUpdate(
+                { email: u.email },
+                {
                     name: u.name,
                     email: u.email,
                     password: hashedPassword,
                     role: u.role,
-                    permissions: ['all'], // Simplified permissions for now
-                });
-            }
+                    permissions: ['all'],
+                },
+                { upsert: true, new: true, runValidators: true }
+            );
+
             if (u.role === 'manager') admin = user;
         }
 
@@ -94,7 +98,7 @@ export async function GET() {
         return NextResponse.json({
             message: 'Database seeded successfully!',
             stats: {
-                users: 1,
+                users: await User.countDocuments(),
                 clients: clients.length,
                 projects: projects.length,
                 tasks: await Task.countDocuments(),
