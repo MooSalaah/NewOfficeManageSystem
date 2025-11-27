@@ -4,45 +4,40 @@ import User from '@/models/User';
 import { comparePassword, signToken } from '@/lib/auth';
 
 export async function POST(req: Request) {
+    let step = 'init';
     try {
+        step = 'db_connect';
         await dbConnect();
+
+        step = 'parse_body';
         const { email, password } = await req.json();
 
         if (!email || !password) {
-            return NextResponse.json(
-                { error: 'Please provide email and password' },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: 'Missing credentials' }, { status: 400 });
         }
 
-        // Find user and select password
+        step = 'find_user';
         const user = await User.findOne({ email }).select('+password');
 
         if (!user) {
-            return NextResponse.json(
-                { error: 'Invalid credentials' },
-                { status: 401 }
-            );
+            return NextResponse.json({ error: 'User not found' }, { status: 401 });
         }
 
-        // Check password
+        step = 'compare_password';
         const isMatch = await comparePassword(password, user.password!);
 
         if (!isMatch) {
-            return NextResponse.json(
-                { error: 'Invalid credentials' },
-                { status: 401 }
-            );
+            return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
         }
 
-        // Create token
+        step = 'sign_token';
         const token = await signToken({
             id: user._id,
             role: user.role,
             name: user.name,
         });
 
-        // Set cookie
+        step = 'create_response';
         const response = NextResponse.json({
             success: true,
             user: {
@@ -62,9 +57,9 @@ export async function POST(req: Request) {
 
         return response;
     } catch (error: any) {
-        console.error('Login error:', error);
+        console.error(`Login error at step ${step}:`, error);
         return NextResponse.json(
-            { error: error.message || 'Internal server error', stack: error.stack },
+            { error: `Failed at ${step}: ${error.message}`, stack: error.stack },
             { status: 500 }
         );
     }
