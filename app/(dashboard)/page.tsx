@@ -2,14 +2,17 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Briefcase, Users, DollarSign, CheckCircle, Loader2 } from 'lucide-react';
-import { usePolling } from '@/hooks/usePolling';
-
+import useSWR from 'swr';
+import { fetcher } from '@/lib/fetcher';
 import { DashboardSkeleton } from '@/components/dashboard-skeleton';
 
 export default function DashboardPage() {
-    const { data, loading } = usePolling<any>('/api/dashboard', 30000);
+    const { data, error, isLoading } = useSWR('/api/dashboard', fetcher, {
+        refreshInterval: 30000,
+        revalidateOnFocus: false
+    });
 
-    if (loading) {
+    if (isLoading) {
         return <DashboardSkeleton />;
     }
 

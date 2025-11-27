@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Search, Loader2, Phone, Mail, Building } from 'lucide-react';
+import useSWR, { mutate } from 'swr';
+import { fetcher } from '@/lib/fetcher';
 
 interface Client {
     _id: string;
@@ -20,8 +22,7 @@ interface Client {
 }
 
 export default function ClientsPage() {
-    const [clients, setClients] = useState<Client[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { data: clients = [], isLoading: loading } = useSWR<Client[]>('/api/clients', fetcher);
     const [search, setSearch] = useState('');
     const [isNewClientOpen, setIsNewClientOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -34,24 +35,6 @@ export default function ClientsPage() {
         address: '',
         notes: ''
     });
-
-    const fetchClients = async () => {
-        try {
-            const res = await fetch('/api/clients');
-            if (res.ok) {
-                const data = await res.json();
-                setClients(data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch clients', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchClients();
-    }, []);
 
     const handleCreateClient = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -66,7 +49,7 @@ export default function ClientsPage() {
 
             if (res.ok) {
                 setIsNewClientOpen(false);
-                fetchClients();
+                mutate('/api/clients');
                 setNewClient({
                     name: '',
                     email: '',

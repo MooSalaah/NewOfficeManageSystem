@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,9 +9,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Calendar as CalendarIcon, Loader2 } from 'lucide-react';
+import { Plus, Search, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { arSA } from 'date-fns/locale';
+import useSWR, { mutate } from 'swr';
+import { fetcher } from '@/lib/fetcher';
 
 interface Project {
     _id: string;
@@ -25,10 +27,10 @@ interface Project {
 }
 
 export default function ProjectsPage() {
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { data: projects = [], isLoading: loading } = useSWR<Project[]>('/api/projects', fetcher);
     const [search, setSearch] = useState('');
     const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
     // New Project Form State
     const [newProject, setNewProject] = useState({
@@ -40,43 +42,13 @@ export default function ProjectsPage() {
         status: 'new',
         description: ''
     });
-    const [submitting, setSubmitting] = useState(false);
-
-    const fetchProjects = async () => {
-        try {
-            const res = await fetch('/api/projects');
-            if (res.ok) {
-                const data = await res.json();
-                setProjects(data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch projects', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchProjects();
-    }, []);
 
     const handleCreateProject = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
 
-        // 1. Create Client first (mock logic for demo, ideally select existing)
-        // For this demo, we'll just assume we need to create a client or link one.
-        // To make it simple and robust without full Client UI yet:
-        // We will create a client on the fly or just send the name if the API handles it.
-        // Let's update the API to handle "create client if not exists" or just use a dummy ID for now if we want to be quick,
-        // BUT we should do it right.
-        // Let's actually fetch clients or just allow typing a name and the backend finds/creates.
-
-        // Actually, let's just send the data to a new endpoint that handles the "Quick Create" logic.
-        // Or better, let's just make the API simple for now.
-
         try {
-            // First create/find client
+            // First create/find client (mock logic for demo)
             const clientRes = await fetch('/api/clients/quick', {
                 method: 'POST',
                 body: JSON.stringify({ name: newProject.clientName, phone: '0000000000' }), // Dummy phone
@@ -99,7 +71,7 @@ export default function ProjectsPage() {
 
             if (res.ok) {
                 setIsNewProjectOpen(false);
-                fetchProjects();
+                mutate('/api/projects');
                 setNewProject({
                     title: '',
                     clientName: '',
