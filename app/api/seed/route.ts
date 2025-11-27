@@ -43,6 +43,10 @@ export async function GET() {
             if (u.role === 'manager') admin = user;
         }
 
+        if (!admin) {
+            throw new Error('Manager user not found after seeding users');
+        }
+
         // 2. Create Clients
         const clientsData = [
             { name: 'شركة الأفق للتطوير', email: 'contact@alofuq.com', phone: '0501234567', company: 'الأفق', address: 'الرياض - العليا' },
