@@ -37,6 +37,10 @@ async function dbConnect() {
             let uri = MONGODB_URI;
             const isProduction = process.env.NODE_ENV === 'production';
 
+            if (!uri && isProduction) {
+                throw new Error('MONGODB_URI is not defined in Environment Variables. Please add it in Vercel Settings.');
+            }
+
             // Fallback to in-memory server if URI is invalid or localhost (assuming user has no mongo)
             // ONLY if we are NOT in production (or if URI explicitly says localhost)
             if (!uri || ((uri.includes('localhost') || uri.includes('127.0.0.1')) && !isProduction)) {
