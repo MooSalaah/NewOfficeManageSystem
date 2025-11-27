@@ -47,9 +47,9 @@ export async function GET() {
 
         // 3. Create Projects
         const projectsData = [
-            { title: 'تصميم فيلا سكنية - حي الملقا', client: clients[0]?._id, status: 'In Progress', budget: 150000, startDate: new Date(), deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
-            { title: 'إشراف هندسي - برج العليا', client: clients[1]?._id, status: 'Planning', budget: 500000, startDate: new Date(), deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) },
-            { title: 'استشارة فنية - ترميم', client: clients[2]?._id, status: 'Completed', budget: 5000, startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), deadline: new Date() },
+            { title: 'تصميم فيلا سكنية - حي الملقا', client: clients[0]?._id, status: 'in_progress', budget: 150000, startDate: new Date(), endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
+            { title: 'إشراف هندسي - برج العليا', client: clients[1]?._id, status: 'new', budget: 500000, startDate: new Date(), endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) },
+            { title: 'استشارة فنية - ترميم', client: clients[2]?._id, status: 'completed', budget: 5000, startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), endDate: new Date() },
         ];
 
         let projects = [];
@@ -65,8 +65,8 @@ export async function GET() {
         // 4. Create Tasks
         if ((await Task.countDocuments()) === 0) {
             await Task.create([
-                { title: 'إعداد المخططات الأولية', project: projects[0]?._id, assignee: admin._id, status: 'In Progress', priority: 'High', dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000) },
-                { title: 'مراجعة العقد', project: projects[1]?._id, assignee: admin._id, status: 'Pending', priority: 'Medium', dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) },
+                { title: 'إعداد المخططات الأولية', project: projects[0]?._id, assignee: admin._id, status: 'in_progress', priority: 'high', dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000) },
+                { title: 'مراجعة العقد', project: projects[1]?._id, assignee: admin._id, status: 'todo', priority: 'medium', dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) },
             ]);
         }
 
