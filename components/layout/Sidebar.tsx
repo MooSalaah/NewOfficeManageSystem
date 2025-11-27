@@ -45,9 +45,14 @@ export function Sidebar() {
             </nav>
             <div className="p-4 border-t border-border">
                 <button
-                    onClick={() => {
-                        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-                        window.location.href = '/login';
+                    onClick={async () => {
+                        try {
+                            await fetch('/api/auth/logout', { method: 'POST' });
+                            window.location.href = '/login';
+                        } catch (error) {
+                            console.error('Logout failed', error);
+                            window.location.href = '/login';
+                        }
                     }}
                     className="flex items-center gap-3 px-4 py-3 w-full text-destructive hover:bg-destructive/10 rounded-md transition-colors font-medium"
                 >
