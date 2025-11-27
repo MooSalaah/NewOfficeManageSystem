@@ -36,7 +36,7 @@ export async function POST(req: Request) {
         }
 
         // Create token
-        const token = signToken({
+        const token = await signToken({
             id: user._id,
             role: user.role,
             name: user.name,
@@ -61,10 +61,10 @@ export async function POST(req: Request) {
         });
 
         return response;
-    } catch (error) {
+    } catch (error: any) {
         console.error('Login error:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: error.message || 'Internal server error', stack: error.stack },
             { status: 500 }
         );
     }

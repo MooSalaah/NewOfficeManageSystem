@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { verifyToken } from '@/lib/auth';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     const token = request.cookies.get('token')?.value;
     const { pathname } = request.nextUrl;
 
@@ -11,14 +12,28 @@ export function middleware(request: NextRequest) {
     // Check if the path is public
     const isPublicPath = publicPaths.some(path => pathname.startsWith(path));
 
-    // If trying to access a public path with a token, redirect to dashboard
+    // If trying to access a public path with a token
     if (isPublicPath && token) {
-        return NextResponse.redirect(new URL('/dashboard', request.url));
+        const payload = await verifyToken(token);
+        if (payload) {
+            return NextResponse.redirect(new URL('/dashboard', request.url));
+        }
     }
 
-    // If trying to access a protected path without a token, redirect to login
+    // If trying to access a protected path without a token
     if (!isPublicPath && !token && !pathname.startsWith('/_next') && !pathname.startsWith('/favicon.ico') && !pathname.startsWith('/public')) {
         return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    // If trying to access a protected path WITH a token, verify it
+    if (!isPublicPath && token && !pathname.startsWith('/_next') && !pathname.startsWith('/favicon.ico')) {
+        const payload = await verifyToken(token);
+        if (!payload) {
+            // Invalid token
+            const response = NextResponse.redirect(new URL('/login', request.url));
+            response.cookies.delete('token');
+            return response;
+        }
     }
 
     return NextResponse.next();
