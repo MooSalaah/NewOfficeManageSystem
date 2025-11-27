@@ -7,13 +7,13 @@ import { LayoutDashboard, Briefcase, Users, DollarSign, UserCheck, Settings, Log
 import { Button } from '@/components/ui/button';
 
 const menuItems = [
-    { href: '/dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
-    { href: '/dashboard/projects', label: 'المشاريع', icon: Briefcase },
-    { href: '/dashboard/tasks', label: 'المهام', icon: ClipboardList },
-    { href: '/dashboard/clients', label: 'العملاء', icon: Users },
-    { href: '/dashboard/finance', label: 'المالية', icon: DollarSign },
-    { href: '/dashboard/hr', label: 'الموارد البشرية', icon: UserCheck },
-    { href: '/dashboard/settings', label: 'الإعدادات', icon: Settings },
+    { href: '/', label: 'لوحة التحكم', icon: LayoutDashboard },
+    { href: '/projects', label: 'المشاريع', icon: Briefcase },
+    { href: '/tasks', label: 'المهام', icon: ClipboardList },
+    { href: '/clients', label: 'العملاء', icon: Users },
+    { href: '/finance', label: 'المالية', icon: DollarSign },
+    { href: '/hr', label: 'الموارد البشرية', icon: UserCheck },
+    { href: '/settings', label: 'الإعدادات', icon: Settings },
 ];
 
 interface MobileSidebarProps {
@@ -39,8 +39,8 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                 <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
                     {menuItems.map((item) => {
                         const Icon = item.icon;
-                        const isActive = item.href === '/dashboard'
-                            ? pathname === '/dashboard'
+                        const isActive = item.href === '/'
+                            ? pathname === '/'
                             : pathname.startsWith(item.href);
                         return (
                             <Link

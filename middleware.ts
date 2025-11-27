@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
     if (isPublicPath && token) {
         const payload = await verifyToken(token);
         if (payload) {
-            return NextResponse.redirect(new URL('/dashboard', request.url));
+            return NextResponse.redirect(new URL('/', request.url));
         }
     }
 

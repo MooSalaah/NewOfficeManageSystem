@@ -33,7 +33,7 @@ export default function LoginPage() {
                 throw new Error(data.error || 'Login failed');
             }
 
-            router.push('/dashboard');
+            router.push('/');
             router.refresh();
         } catch (err: any) {
             setError(err.message);
