@@ -12,7 +12,7 @@ export async function GET() {
         const [projectsCount, clientsCount, tasksCount, transactions] = await Promise.all([
             Project.countDocuments(),
             Client.countDocuments(),
-            Task.countDocuments({ status: { $ne: 'Completed' } }),
+            Task.countDocuments({ status: { $ne: 'done' } }),
             Transaction.aggregate([
                 { $match: { type: 'income' } },
                 { $group: { _id: null, total: { $sum: '$amount' } } }

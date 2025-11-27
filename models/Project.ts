@@ -21,6 +21,7 @@ const ProjectSchema: Schema = new Schema(
             type: String,
             enum: ['new', 'in_progress', 'completed', 'on_hold'],
             default: 'new',
+            index: true,
         },
         budget: { type: Number, required: true },
         startDate: { type: Date, required: true },

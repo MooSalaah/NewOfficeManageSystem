@@ -4,11 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Briefcase, Users, DollarSign, CheckCircle, Loader2 } from 'lucide-react';
 import { usePolling } from '@/hooks/usePolling';
 
+import { DashboardSkeleton } from '@/components/dashboard-skeleton';
+
 export default function DashboardPage() {
-    const { data, loading } = usePolling<any>('/api/dashboard', 10000);
+    const { data, loading } = usePolling<any>('/api/dashboard', 30000);
 
     if (loading) {
-        return <div className="flex items-center justify-center h-96"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+        return <DashboardSkeleton />;
     }
 
     return (
