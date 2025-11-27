@@ -2,261 +2,187 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowUpCircle, ArrowDownCircle, DollarSign, Plus, Loader2, FileText } from 'lucide-react';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { Badge } from '@/components/ui/badge';
+import { Plus, DollarSign, TrendingUp, TrendingDown, FileText, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { arSA } from 'date-fns/locale';
 
 export default function FinancePage() {
-    const [data, setData] = useState<any>(null);
+    const [invoices, setInvoices] = useState<any[]>([]);
+    const [expenses, setExpenses] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isNewTransactionOpen, setIsNewTransactionOpen] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
-
-    const [newTransaction, setNewTransaction] = useState({
-        type: 'expense',
-        amount: '',
-        category: '',
-        description: '',
-        date: new Date().toISOString().split('T')[0]
-    });
-
-    const fetchData = async () => {
-        try {
-            const res = await fetch('/api/finance');
-            if (res.ok) {
-                const json = await res.json();
-                setData(json);
-            }
-        } catch (error) {
-            console.error('Failed to fetch finance data', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [invoicesRes, expensesRes] = await Promise.all([
+                    fetch('/api/finance/invoices'),
+                    fetch('/api/finance/expenses')
+                ]);
+
+                if (invoicesRes.ok) setInvoices(await invoicesRes.json());
+                if (expensesRes.ok) setExpenses(await expensesRes.json());
+            } catch (error) {
+                console.error('Error fetching finance data', error);
+            } finally {
+                setLoading(false);
+            }
+        };
         fetchData();
     }, []);
 
-    const handleCreateTransaction = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setSubmitting(true);
+    const totalIncome = invoices
+        .filter(inv => inv.status === 'paid')
+        .reduce((sum, inv) => sum + inv.amount, 0);
 
-        try {
-            const res = await fetch('/api/finance', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...newTransaction,
-                    amount: Number(newTransaction.amount)
-                }),
-            });
-
-            if (res.ok) {
-                setIsNewTransactionOpen(false);
-                fetchData();
-                setNewTransaction({
-                    type: 'expense',
-                    amount: '',
-                    category: '',
-                    description: '',
-                    date: new Date().toISOString().split('T')[0]
-                });
-            }
-        } catch (error) {
-            console.error('Error creating transaction', error);
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    if (loading) {
-        return <div className="flex items-center justify-center h-96"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
-    }
+    const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const netProfit = totalIncome - totalExpenses;
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h2 className="text-3xl font-bold tracking-tight text-primary">المالية</h2>
+        <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-3xl font-bold tracking-tight text-primary">المالية</h2>
+                    <p className="text-muted-foreground mt-1">متابعة الفواتير والمصروفات والأرباح</p>
+                </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => window.location.href = '/dashboard/finance/invoices'}>
-                        <FileText className="w-4 h-4 ml-2" />
-                        إدارة الفواتير
+                    <Button className="gap-2 bg-green-600 hover:bg-green-700">
+                        <Plus className="w-4 h-4" />
+                        فاتورة جديدة
                     </Button>
-                    <Dialog open={isNewTransactionOpen} onOpenChange={setIsNewTransactionOpen}>
-                        <DialogTrigger asChild>
-                            <Button className="gap-2">
-                                <Plus className="w-4 h-4" />
-                                تسجيل عملية
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[500px]">
-                            <DialogHeader>
-                                <DialogTitle>تسجيل عملية مالية جديدة</DialogTitle>
-                            </DialogHeader>
-                            <form onSubmit={handleCreateTransaction} className="space-y-4 mt-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="type">نوع العملية</Label>
-                                        <Select
-                                            value={newTransaction.type}
-                                            onValueChange={(val) => setNewTransaction({ ...newTransaction, type: val })}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="income">إيراد (دخل)</SelectItem>
-                                                <SelectItem value="expense">مصروف</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="amount">المبلغ (ر.س)</Label>
-                                        <Input
-                                            id="amount"
-                                            type="number"
-                                            required
-                                            value={newTransaction.amount}
-                                            onChange={(e) => setNewTransaction({ ...newTransaction, amount: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="category">التصنيف</Label>
-                                    <Input
-                                        id="category"
-                                        placeholder="مثال: رواتب، إيجار، دفعة مشروع..."
-                                        required
-                                        value={newTransaction.category}
-                                        onChange={(e) => setNewTransaction({ ...newTransaction, category: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="date">التاريخ</Label>
-                                    <Input
-                                        id="date"
-                                        type="date"
-                                        required
-                                        value={newTransaction.date}
-                                        onChange={(e) => setNewTransaction({ ...newTransaction, date: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="description">الوصف</Label>
-                                    <Input
-                                        id="description"
-                                        value={newTransaction.description}
-                                        onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="flex justify-end gap-2 pt-4">
-                                    <Button type="button" variant="outline" onClick={() => setIsNewTransactionOpen(false)}>إلغاء</Button>
-                                    <Button type="submit" disabled={submitting}>
-                                        {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'حفظ'}
-                                    </Button>
-                                </div>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
+                    <Button variant="outline" className="gap-2 text-red-600 border-red-200 hover:bg-red-50">
+                        <Plus className="w-4 h-4" />
+                        مصروف جديد
+                    </Button>
                 </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
-                <Card>
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="border-t-4 border-t-green-500">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">إجمالي الإيرادات</CardTitle>
-                        <ArrowUpCircle className="h-4 w-4 text-green-500" />
+                        <CardTitle className="text-sm font-medium">إجمالي الدخل</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-green-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-green-600">{data?.stats.income.toLocaleString()} ر.س</div>
+                        <div className="text-2xl font-bold">{totalIncome.toLocaleString()} ر.س</div>
+                        <p className="text-xs text-muted-foreground mt-1">من الفواتير المدفوعة</p>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="border-t-4 border-t-red-500">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">إجمالي المصروفات</CardTitle>
-                        <ArrowDownCircle className="h-4 w-4 text-red-500" />
+                        <TrendingDown className="h-4 w-4 text-red-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-red-600">{data?.stats.expenses.toLocaleString()} ر.س</div>
+                        <div className="text-2xl font-bold">{totalExpenses.toLocaleString()} ر.س</div>
+                        <p className="text-xs text-muted-foreground mt-1">مصاريف تشغيلية ورواتب</p>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className={`border-t-4 ${netProfit >= 0 ? 'border-t-blue-500' : 'border-t-orange-500'}`}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">صافي الربح</CardTitle>
-                        <DollarSign className="h-4 w-4 text-blue-500" />
+                        <DollarSign className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
-                        <div className={`text-2xl font-bold ${data?.stats.netProfit >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                            {data?.stats.netProfit.toLocaleString()} ر.س
-                        </div>
+                        <div className="text-2xl font-bold">{netProfit.toLocaleString()} ر.س</div>
+                        <p className="text-xs text-muted-foreground mt-1">الرصيد الحالي</p>
                     </CardContent>
                 </Card>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-7">
-                <Card className="col-span-4">
-                    <CardHeader>
-                        <CardTitle>التحليل المالي (آخر 6 أشهر)</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pl-2">
-                        <div className="h-[300px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={data?.chartData}>
-                                    <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                                    <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
-                                    <Tooltip />
-                                    <Bar dataKey="income" name="إيرادات" fill="var(--color-chart-1)" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="expense" name="مصروفات" fill="var(--color-chart-2)" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="col-span-3">
-                    <CardHeader>
-                        <CardTitle>آخر العمليات</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="text-right">البيان</TableHead>
-                                    <TableHead className="text-right">المبلغ</TableHead>
-                                    <TableHead className="text-right">التاريخ</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {data?.transactions.map((t: any) => (
-                                    <TableRow key={t._id}>
-                                        <TableCell>
-                                            <div className="font-medium">{t.category}</div>
-                                            <div className="text-xs text-muted-foreground">{t.description || '-'}</div>
-                                        </TableCell>
-                                        <TableCell className={t.type === 'income' ? 'text-green-600' : 'text-red-600'}>
-                                            {t.type === 'income' ? '+' : '-'}{t.amount.toLocaleString()}
-                                        </TableCell>
-                                        <TableCell className="text-xs text-muted-foreground">
-                                            {format(new Date(t.date), 'dd MMM', { locale: arSA })}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-            </div>
+            <Tabs defaultValue="invoices" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+                    <TabsTrigger value="invoices">الفواتير</TabsTrigger>
+                    <TabsTrigger value="expenses">المصروفات</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="invoices" className="mt-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>سجل الفواتير</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {loading ? (
+                                <div className="space-y-2">
+                                    {[1, 2, 3].map(i => <div key={i} className="h-12 bg-muted/20 rounded animate-pulse" />)}
+                                </div>
+                            ) : invoices.length === 0 ? (
+                                <div className="text-center py-8 text-muted-foreground">لا توجد فواتير</div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {invoices.map((invoice) => (
+                                        <div key={invoice._id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                                            <div className="flex items-center gap-4">
+                                                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                                    <FileText className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium">{invoice.project?.title || 'مشروع غير محدد'}</p>
+                                                    <p className="text-sm text-muted-foreground">{invoice.client?.name}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-left">
+                                                <p className="font-bold">{invoice.amount.toLocaleString()} ر.س</p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <Badge variant={invoice.status === 'paid' ? 'default' : invoice.status === 'overdue' ? 'destructive' : 'secondary'}>
+                                                        {invoice.status === 'paid' ? 'مدفوعة' : invoice.status === 'overdue' ? 'متأخرة' : 'معلقة'}
+                                                    </Badge>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {format(new Date(invoice.dueDate), 'dd MMM', { locale: arSA })}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="expenses" className="mt-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>سجل المصروفات</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {loading ? (
+                                <div className="space-y-2">
+                                    {[1, 2, 3].map(i => <div key={i} className="h-12 bg-muted/20 rounded animate-pulse" />)}
+                                </div>
+                            ) : expenses.length === 0 ? (
+                                <div className="text-center py-8 text-muted-foreground">لا توجد مصروفات</div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {expenses.map((expense) => (
+                                        <div key={expense._id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                                            <div className="flex items-center gap-4">
+                                                <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                                                    <DollarSign className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium">{expense.title}</p>
+                                                    <p className="text-sm text-muted-foreground">{expense.category}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-left">
+                                                <p className="font-bold text-red-600">-{expense.amount.toLocaleString()} ر.س</p>
+                                                <span className="text-xs text-muted-foreground">
+                                                    {format(new Date(expense.date), 'dd MMM yyyy', { locale: arSA })}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }
