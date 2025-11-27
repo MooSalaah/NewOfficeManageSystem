@@ -43,24 +43,29 @@ export function UserNav() {
         }
     }
 
-    if (!user) return null; // Or a loading skeleton
+    // if (!user) return null; // Removed early return
+
+    const displayName = user?.name || 'Loading...';
+    const displayEmail = user?.email || '...';
+    const displayAvatar = user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${displayName}`;
+    const displayInitials = user?.name ? user.name.charAt(0) : 'U';
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt={user.name} />
-                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={displayAvatar} alt={displayName} />
+                        <AvatarFallback>{displayInitials}</AvatarFallback>
                     </Avatar>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{user.name}</p>
+                        <p className="text-sm font-medium leading-none">{displayName}</p>
                         <p className="text-xs leading-none text-muted-foreground">
-                            {user.email}
+                            {displayEmail}
                         </p>
                     </div>
                 </DropdownMenuLabel>
