@@ -3,8 +3,63 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Plus, DollarSign, TrendingUp, TrendingDown, FileText, Calendar } from 'lucide-react';
+import { format } from 'date-fns';
+import { arSA } from 'date-fns/locale';
+import { InvoiceDialog } from '@/components/finance/invoice-dialog';
 
-{/* Summary Cards */ }
+export default function FinancePage() {
+    const [invoices, setInvoices] = useState<any[]>([]);
+    const [expenses, setExpenses] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchData = async () => {
+        try {
+            const [invoicesRes, expensesRes] = await Promise.all([
+                fetch('/api/finance/invoices'),
+                fetch('/api/finance/expenses')
+            ]);
+
+            if (invoicesRes.ok) setInvoices(await invoicesRes.json());
+            if (expensesRes.ok) setExpenses(await expensesRes.json());
+        } catch (error) {
+            console.error('Error fetching finance data', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const totalIncome = invoices
+        .filter(inv => inv.status === 'paid')
+        .reduce((sum, inv) => sum + inv.amount, 0);
+
+    const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const netProfit = totalIncome - totalExpenses;
+
+    return (
+        <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-3xl font-bold tracking-tight text-primary">المالية</h2>
+                    <p className="text-muted-foreground mt-1">متابعة الفواتير والمصروفات والأرباح</p>
+                </div>
+                <div className="flex gap-2">
+                    <InvoiceDialog onInvoiceSaved={fetchData} />
+                    <Button variant="outline" className="gap-2 text-red-600 border-red-200 hover:bg-red-50">
+                        <Plus className="w-4 h-4" />
+                        مصروف جديد
+                    </Button>
+                </div>
+            </div>
+
+            {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="border-t-4 border-t-green-500">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -127,6 +182,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
                     </Card>
                 </TabsContent>
             </Tabs>
-        </div >
+        </div>
     );
 }
