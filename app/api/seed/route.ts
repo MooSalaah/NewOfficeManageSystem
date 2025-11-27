@@ -35,6 +35,7 @@ export async function GET() {
                     email: u.email,
                     password: hashedPassword,
                     role: u.role,
+                    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`,
                     permissions: ['all'],
                 },
                 { upsert: true, new: true, runValidators: true }
