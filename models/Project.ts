@@ -3,6 +3,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 export interface IProject extends Document {
     title: string;
     client: mongoose.Types.ObjectId;
+    manager?: mongoose.Types.ObjectId;
     status: 'new' | 'in_progress' | 'completed' | 'on_hold';
     budget: number;
     startDate: Date;
@@ -17,6 +18,7 @@ const ProjectSchema: Schema = new Schema(
     {
         title: { type: String, required: true },
         client: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
+        manager: { type: Schema.Types.ObjectId, ref: 'User' },
         status: {
             type: String,
             enum: ['new', 'in_progress', 'completed', 'on_hold'],
