@@ -114,6 +114,9 @@ export function InvoiceDialog({ onInvoiceSaved }: InvoiceDialogProps) {
             <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>إنشاء فاتورة جديدة</DialogTitle>
+                    <div className="sr-only">
+                        <p>نموذج لإنشاء فاتورة جديدة وتحديد المشروع والبنود.</p>
+                    </div>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                     <div className="space-y-2">

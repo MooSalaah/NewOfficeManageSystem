@@ -80,6 +80,9 @@ export function ClientDialog({ clientToEdit, onClientSaved, trigger }: ClientDia
                     <DialogTitle>
                         {clientToEdit ? 'تعديل بيانات العميل' : 'إضافة عميل جديد'}
                     </DialogTitle>
+                    <div className="sr-only">
+                        <p>نموذج لإضافة أو تعديل بيانات العميل بما في ذلك الاسم ورقم الهاتف والعنوان.</p>
+                    </div>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                     <div className="grid grid-cols-2 gap-4">

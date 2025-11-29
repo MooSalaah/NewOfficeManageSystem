@@ -28,9 +28,18 @@ export async function GET(req: Request) {
         }
 
         return NextResponse.json({ user });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching profile:', error);
-        return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
+
+        // Check for specific errors
+        if (error.message && error.message.includes('MONGODB_URI')) {
+            return NextResponse.json({ error: 'Database configuration error: MONGODB_URI is missing' }, { status: 500 });
+        }
+
+        return NextResponse.json({
+            error: 'Failed to fetch profile',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        }, { status: 500 });
     }
 }
 

@@ -8,8 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Loader2, ArrowRight, ArrowLeft, Check } from 'lucide-react';
+import { Plus, Loader2, ArrowRight, ArrowLeft, Check, UserPlus, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const STANDARD_TASKS = [
     "رسم مخططات معمارية",
@@ -46,10 +47,14 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
     const [step, setStep] = useState(1);
     const [submitting, setSubmitting] = useState(false);
     const [users, setUsers] = useState<any[]>([]);
+    const [clients, setClients] = useState<any[]>([]);
+    const [clientMode, setClientMode] = useState<'existing' | 'new'>('existing');
 
     const [formData, setFormData] = useState({
         title: '',
-        clientName: '',
+        clientId: '', // For existing client
+        newClientName: '', // For new client
+        newClientPhone: '', // For new client
         manager: '',
         budget: '',
         startDate: '',
@@ -60,19 +65,27 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
     });
 
     useEffect(() => {
-        const fetchUsers = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch('/api/users');
-                if (res.ok) {
-                    const data = await res.json();
+                const [usersRes, clientsRes] = await Promise.all([
+                    fetch('/api/users'),
+                    fetch('/api/clients')
+                ]);
+
+                if (usersRes.ok) {
+                    const data = await usersRes.json();
                     setUsers(data);
                 }
+                if (clientsRes.ok) {
+                    const data = await clientsRes.json();
+                    setClients(data);
+                }
             } catch (error) {
-                console.error('Failed to fetch users', error);
+                console.error('Failed to fetch data', error);
             }
         };
         if (open) {
-            fetchUsers();
+            fetchData();
         }
     }, [open]);
 
@@ -89,12 +102,32 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
     const handleSubmit = async () => {
         setSubmitting(true);
         try {
-            // 1. Create/Find Client (Quick logic)
-            const clientRes = await fetch('/api/clients/quick', {
-                method: 'POST',
-                body: JSON.stringify({ name: formData.clientName, phone: '0000000000' }),
-            });
-            const clientData = await clientRes.json();
+            let finalClientId = formData.clientId;
+
+            // 1. Create Client if needed
+            if (clientMode === 'new') {
+                const clientRes = await fetch('/api/clients', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: formData.newClientName,
+                        phone: formData.newClientPhone
+                    }),
+                });
+
+                if (!clientRes.ok) {
+                    throw new Error('Failed to create client');
+                }
+
+                const clientData = await clientRes.json();
+                finalClientId = clientData._id;
+            } else {
+                if (!finalClientId) {
+                    alert('الرجاء اختيار عميل');
+                    setSubmitting(false);
+                    return;
+                }
+            }
 
             // 2. Create Project with Tasks
             const res = await fetch('/api/projects', {
@@ -102,7 +135,7 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     title: formData.title,
-                    client: clientData._id,
+                    client: finalClientId,
                     manager: formData.manager,
                     budget: Number(formData.budget),
                     startDate: formData.startDate,
@@ -118,7 +151,9 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
                 setStep(1);
                 setFormData({
                     title: '',
-                    clientName: '',
+                    clientId: '',
+                    newClientName: '',
+                    newClientPhone: '',
                     manager: '',
                     budget: '',
                     startDate: '',
@@ -131,6 +166,7 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
             }
         } catch (error) {
             console.error('Error creating project:', error);
+            alert('حدث خطأ أثناء إنشاء المشروع');
         } finally {
             setSubmitting(false);
         }
@@ -149,6 +185,9 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
                     <DialogTitle>
                         {step === 1 ? 'بيانات المشروع (1/2)' : 'اختيار المهام (2/2)'}
                     </DialogTitle>
+                    <div className="sr-only">
+                        <p>نموذج لإنشاء مشروع جديد وتحديد المهام المرتبطة به.</p>
+                    </div>
                 </DialogHeader>
 
                 <div className="mt-4">
@@ -166,19 +205,6 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="client">العميل</Label>
-                                    <Input
-                                        id="client"
-                                        required
-                                        value={formData.clientName}
-                                        onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-                                        placeholder="اسم العميل"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
                                     <Label htmlFor="manager">مدير المشروع</Label>
                                     <Select
                                         value={formData.manager}
@@ -195,6 +221,76 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2 border p-4 rounded-lg bg-muted/10">
+                                <Label className="mb-2 block">بيانات العميل</Label>
+                                <Tabs defaultValue="existing" value={clientMode} onValueChange={(v) => setClientMode(v as any)} className="w-full" dir="rtl">
+                                    <TabsList className="grid w-full grid-cols-2 mb-4">
+                                        <TabsTrigger value="existing" className="gap-2">
+                                            <Users className="w-4 h-4" />
+                                            عميل حالي
+                                        </TabsTrigger>
+                                        <TabsTrigger value="new" className="gap-2">
+                                            <UserPlus className="w-4 h-4" />
+                                            عميل جديد
+                                        </TabsTrigger>
+                                    </TabsList>
+
+                                    <TabsContent value="existing">
+                                        <Select
+                                            value={formData.clientId}
+                                            onValueChange={(val) => setFormData({ ...formData, clientId: val })}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="اختر العميل من القائمة" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {clients.map((client) => (
+                                                    <SelectItem key={client._id} value={client._id}>
+                                                        {client.name} - {client.phone}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </TabsContent>
+
+                                    <TabsContent value="new" className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="newClientName">اسم العميل</Label>
+                                                <Input
+                                                    id="newClientName"
+                                                    value={formData.newClientName}
+                                                    onChange={(e) => setFormData({ ...formData, newClientName: e.target.value })}
+                                                    placeholder="الاسم الكامل"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="newClientPhone">رقم الجوال</Label>
+                                                <Input
+                                                    id="newClientPhone"
+                                                    value={formData.newClientPhone}
+                                                    onChange={(e) => setFormData({ ...formData, newClientPhone: e.target.value })}
+                                                    placeholder="05xxxxxxxx"
+                                                />
+                                            </div>
+                                        </div>
+                                    </TabsContent>
+                                </Tabs>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="budget">الميزانية (ر.س)</Label>
+                                    <Input
+                                        id="budget"
+                                        type="number"
+                                        required
+                                        value={formData.budget}
+                                        onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="status">الحالة</Label>
@@ -217,16 +313,6 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="budget">الميزانية (ر.س)</Label>
-                                    <Input
-                                        id="budget"
-                                        type="number"
-                                        required
-                                        value={formData.budget}
-                                        onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
                                     <Label htmlFor="startDate">تاريخ البداية</Label>
                                     <Input
                                         id="startDate"
@@ -236,9 +322,6 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
                                         onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                                     />
                                 </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="endDate">تاريخ النهاية</Label>
                                     <Input
