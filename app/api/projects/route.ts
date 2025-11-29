@@ -23,10 +23,13 @@ export async function GET() {
             .sort({ createdAt: -1 });
 
         return NextResponse.json(projects);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching projects:', error);
+        if (error.message && error.message.includes('MONGODB_URI')) {
+            return NextResponse.json({ error: 'Database configuration error: MONGODB_URI is missing' }, { status: 500 });
+        }
         return NextResponse.json(
-            { error: 'Failed to fetch projects' },
+            { error: 'Failed to fetch projects', details: error.message },
             { status: 500 }
         );
     }
@@ -58,10 +61,13 @@ export async function POST(req: Request) {
         }
 
         return NextResponse.json(project, { status: 201 });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating project:', error);
+        if (error.message && error.message.includes('MONGODB_URI')) {
+            return NextResponse.json({ error: 'Database configuration error: MONGODB_URI is missing' }, { status: 500 });
+        }
         return NextResponse.json(
-            { error: 'Failed to create project' },
+            { error: 'Failed to create project', details: error.message },
             { status: 500 }
         );
     }
