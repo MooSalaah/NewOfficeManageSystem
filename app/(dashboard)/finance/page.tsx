@@ -99,7 +99,7 @@ export default function FinancePage() {
                 </Card>
             </div>
 
-            <Tabs defaultValue="invoices" className="w-full">
+            <Tabs defaultValue="invoices" className="w-full" dir="rtl">
                 <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
                     <TabsTrigger value="invoices">الفواتير</TabsTrigger>
                     <TabsTrigger value="expenses">المصروفات</TabsTrigger>
